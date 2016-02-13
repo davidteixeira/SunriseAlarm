@@ -1,0 +1,4 @@
+<resources>
+    <string name="app_name">Sunrise Alarm</string>
+    <string name="checkbox">Light up LEDs</string>
+</resources>
