@@ -2,6 +2,7 @@ package com.dteixeira.sunrisealarm;
 
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
+import android.bluetooth.BluetoothServerSocket;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -13,10 +14,14 @@ import android.widget.ArrayAdapter;
 import android.widget.CheckBox;
 import android.widget.Toast;
 
+import java.io.IOException;
+
 public class MainActivity extends AppCompatActivity {
 
     CheckBox mCheckBox;
+    CheckBox mCheckBoxBT;
     ArrayAdapter mArrayAdapter;
+    BluetoothAdapter mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -26,39 +31,25 @@ public class MainActivity extends AppCompatActivity {
         Context context = (Context)getApplicationContext();
 
 
-        BluetoothAdapter mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
+        //BluetoothAdapter mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
 
-        CharSequence text = "Your device does not support Bluetooth";
-        int duration = Toast.LENGTH_SHORT;
-        Toast mToast = Toast.makeText(context, text, duration);
+        int duration = Toast.LENGTH_LONG;
 
+        String status;
         // Check BT support and enable if supported
         if (mBluetoothAdapter == null){
             // Device does not support BT
-            mToast.show();
+            status = "Your device does not support Bluetooth";
         }
         else {
-            mBluetoothAdapter.enable();
+            String myAdress = mBluetoothAdapter.getAddress();
+            String myName = mBluetoothAdapter.getName();
+            status = myName + ":" + myAdress;
         }
 
-        // Create a BroadcastReceiver for ACTION_FOUND
-        final BroadcastReceiver mReceiver = new BroadcastReceiver() {
-            @Override
-            public void onReceive(Context context, Intent intent) {
-                String action = intent.getAction();
-                // When discovery finds a device
-                if (BluetoothDevice.ACTION_FOUND.equals(action)){
-                    // Get the BluetoothDevice object from the intent
-                    BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
-                    // Add the name and address to an array adapter to show in a ListView
-                    mArrayAdapter.add(device.getName() + "\n" + device.getAddress());
-                }
-            }
-        };
+        final Toast mToast = Toast.makeText(context, status, duration);
+        mToast.show();
 
-        // Register the BroadcastReceiver
-        IntentFilter filter = new IntentFilter(BluetoothDevice.ACTION_FOUND);
-        registerReceiver(mReceiver, filter); // Unregister during onDestroy
 
         mCheckBox = (CheckBox)findViewById(R.id.checkBox);
         mCheckBox.setOnClickListener(new View.OnClickListener() {
@@ -73,11 +64,28 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        mCheckBoxBT = (CheckBox)findViewById(R.id.checkBox2);
+        mCheckBoxBT.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (mCheckBoxBT.isChecked()){
+                    mBluetoothAdapter.enable();
+                    mToast.show();
+                }
+                if (!mCheckBoxBT.isChecked()){
+                    mBluetoothAdapter.disable();
+                }
+            }
+        });
+
     }
 
     protected void onDestroy(){
         super.onDestroy();
+        mBluetoothAdapter.disable();
 
     }
+
+
 
 }
